@@ -1,2 +1,2 @@
-# QL-database-practice-for-Zomato-delivery-data
-In this data base, I have analyse relation between restaurant, location and customers.
+sql_zomato_delivery_analysis
+“In this database, I have analyzed the relationship between restaurants, locations, and customers.
