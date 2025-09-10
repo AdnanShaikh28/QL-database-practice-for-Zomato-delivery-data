@@ -1,52 +1,93 @@
----Restaurants delivering Online or not
+--- Drop Tables
 
+---DROP TABLE IF EXISTS zomato;
+
+=======================================================================================
+
+--- CREATE TABLES
+
+---CREATE TABLE zomato (
+    order_id INT PRIMARY KEY,
+    restaurant_name VARCHAR(255),
+    online_order VARCHAR(3),
+    book_table VARCHAR(3),
+    rate VARCHAR(10),
+    votes INT,
+    restaurant_location VARCHAR(255),
+    rest_type VARCHAR(255),
+    dish_like TEXT,
+    cuisines TEXT,
+    approx_cost VARCHAR(20),
+    type_of_service VARCHAR(255),
+    city VARCHAR(255)
+);
+
+=======================================================================================
+
+--- INSERT CSV
+
+---Copy zomato 
+FROM 'C:\Program Files\PostgreSQL\17\zomato-zomato.csv.csv' 
+WITH (FORMAT CSV, HEADER);
+
+---Select statement
+Select * from zomato
+
+=======================================================================================
+
+
+---Restaurants delivering Online or not
 SELECT restaurant_name, online_order
 FROM zomato
 WHERE online_order = 'Yes'
 limit 100;
 
-Ans- Based on the dataset, 100% of restaurants accept online delivery. This is expected because the platform is an online food delivery application, and listing a restaurant that does not support online orders would not align with the platform’s core business model.
+Note- Based on the dataset, 100% of restaurants accept online delivery. This is expected because the platform is an online food delivery application, and listing a restaurant that does not support online orders would not align with the platform’s core business model.
+
+=====================================================================================
 
 ---Restaurants allowing table booking or not
-
 SELECT restaurant_name, book_table
 FROM zomato
 WHERE book_table IN ('Yes', 'No');
 
-Ans-  From the dataset, we can see a variation in table booking availability. While all restaurants accept online delivery, only a subset provide the option of table booking. This reflects differences in business models — premium and fine-dining restaurants often allow reservations, whereas quick-service and smaller outlets usually do not.
+Note-  From the dataset, we can see a variation in table booking availability. While all restaurants accept online delivery, only a subset provide the option of table booking. This reflects differences in business models — premium and fine-dining restaurants often allow reservations, whereas quick-service and smaller outlets usually do not.
+
+=====================================================================================
 
 ---Table booking Rate vs Rate
-
 SELECT restaurant_name, rate, approx_cost
 FROM zomato
 WHERE book_table = 'Yes';
 
-Ans-From the dataset, we observed that table booking restaurants are usually on the higher cost side. However, ratings do not always match the pricing. Some expensive restaurants still receive low ratings, while some affordable restaurants achieve high ratings. This indicates that customer satisfaction depends on more than just cost — factors like service, food quality, and convenience play a bigger role.
+Note- From the dataset, we observed that table booking restaurants are usually on the higher cost side. However, ratings do not always match the pricing. Some expensive restaurants still receive low ratings, while some affordable restaurants achieve high ratings. This indicates that customer satisfaction depends on more than just cost — factors like service, food quality, and convenience play a bigger role.
+
+=====================================================================================
 
 ---Best Location
-
 Select restaurant_location, SUM(votes) AS total_votes
 from zomato
 group by restaurant_location
 Order by total_votes desc;
 
----Relation between Location and Rating
+=====================================================================================
 
+---Relation between Location and Rating
 SELECT restaurant_location, AVG(CAST(LEFT(rate, 3) AS NUMERIC)) AS average_rating
 FROM zomato
 WHERE rate != 'NEW' AND rate != '-'
 GROUP BY restaurant_location
 ORDER BY average_rating DESC;
 
-Ans - I performed this task in a two-step process:
+Note- I performed this task in a two-step process:
 
 Data Cleaning: I first cleaned the rate column. Since the raw data contained text values like 'NEW' and '-' and the ratings were in a '4.1/5' format, I had to remove the non-numerical entries and extract only the number (e.g., '4.1') from the rating string. I then converted this extracted text into a numerical data type.
 
 Aggregation and Ordering: After cleaning the data, I used a GROUP BY clause to group all the restaurants by their restaurant_location. Then, I calculated the AVG() (average) of the cleaned numerical ratings for each location. Finally, I sorted the results in descending order (DESC) to identify the top-rated locations.
 
+=====================================================================================
 
 ---Restaurant Type
-
 SELECT restaurant_name, cuisines
 FROM zomato
 WHERE cuisines ILIKE '%Chinese%'
@@ -57,19 +98,20 @@ WHERE cuisines ILIKE '%Chinese%'
    OR cuisines ILIKE '%Cafe%'
 Order by cuisines asc;
 
-Ans - In our analysis, we determined the types of restaurants by searching for specific cuisine keywords within the cuisines column. By using the ILIKE operator with wildcards, we can efficiently identify and showcase restaurants that serve Chinese, Mughlai, Indian, South Indian, Italian, or Cafe-style food. This approach allows us to see what kind of food is available and in which locations.
+Note- In our analysis, we determined the types of restaurants by searching for specific cuisine keywords within the cuisines column. By using the ILIKE operator with wildcards, we can efficiently identify and showcase restaurants that serve Chinese, Mughlai, Indian, South Indian, Italian, or Cafe-style food. This approach allows us to see what kind of food is available and in which locations.
 
+=====================================================================================
 
 ---Gaussian Rest type and Rating 
-
 Select rest_type, AVG(CAST(LEFT(rate, 3) AS NUMERIC)) AS average_rating
 from zomato
 WHERE rate != 'NEW' AND rate != '-'
 Group by rest_type
 order by average_rating desc;
 
----Types of Services (Here we have used CTEs to get the percentage and count for types of restaurant)
+=====================================================================================
 
+---Types of Services (Here we have used CTEs to get the percentage and count for types of restaurant)
 WITH RestaurantCounts AS (
     SELECT
         rest_type,
@@ -93,15 +135,14 @@ FROM
 ORDER BY
     percentage DESC;
 
-Ans - This query uses Common Table Expressions (CTEs), which are temporary result sets, to make the logic clearer.
-
+Note- This query uses Common Table Expressions (CTEs), which are temporary result sets, to make the logic clearer.
 RestaurantCounts: This CTE counts how many times each rest_type appears in the table.
 TotalRestaurants: This CTE simply calculates the total number of restaurants in the entire table.
 Final SELECT: This part joins the two CTEs and calculates the percentage for each rest_type by dividing its count by the total count. * 100.0 is used to get a decimal result, and the result is ordered by the percentage in descending order.
 
+=====================================================================================
 
 ---Relationship between type and rating
-
 SELECT rest_type, AVG(CAST(LEFT(rate, 3) AS NUMERIC)) AS average_rating
 FROM zomato
 WHERE rate != 'NEW' AND rate != '-'
@@ -109,15 +150,16 @@ GROUP BY rest_type
 ORDER BY average_rating DESC;
 
 Q- How this identify as the relationship?
-Ans -The query identifies a relationship by aggregating data, which is the process of summarizing or combining data points to reveal a trend.
+Note- The query identifies a relationship by aggregating data, which is the process of summarizing or combining data points to reveal a trend.
 In this specific case, instead of looking at the rating for each individual restaurant (which would show no clear trend), the query:
 Groups all restaurants by their rest_type (e.g., all "Cafes" together, all "Quick Bites" together).
 Calculates an aggregate value (the AVG or average) for the rating of all the restaurants within each group.
 Orders these average values to show which types are rated highest and lowest.
 By performing these steps, you are not just listing data points; you are creating a meaningful summary that reveals a direct relationship: "This type of restaurant has an average rating of X." This allows for a direct comparison between different restaurant types.
 
----Cost of Restaurant
+=====================================================================================
 
+---Cost of Restaurant
 SELECT rest_type, AVG(CAST(REPLACE(approx_cost, ',', '') AS NUMERIC)) AS average_cost
 FROM zomato
 WHERE approx_cost IS NOT NULL AND approx_cost != ''
@@ -134,12 +176,14 @@ WHERE approx_cost IS NOT NULL AND approx_cost != '': This clause filters out any
 GROUP BY rest_type: This groups all restaurants by their type.
 ORDER BY average_cost DESC: This sorts the final result from the highest average cost to the lowest.
 
----No. of restaurants in a Location
+=====================================================================================
 
+---No. of restaurants in a Location
 SELECT restaurant_location, COUNT(*) AS number_of_restaurants
 FROM zomato
 GROUP BY restaurant_location
 ORDER BY number_of_restaurants DESC;
 
-Ans- We used a count function (COUNT(*)) and a GROUP BY clause to analyze the dataset. This allowed us to determine the exact number of restaurants in each particular location. By grouping all the restaurants by their location, we were able to get a total count for each one. This provides a clear overview of which areas have the highest concentration of dining establishments.
+Note- We used a count function (COUNT(*)) and a GROUP BY clause to analyze the dataset. This allowed us to determine the exact number of restaurants in each particular location. By grouping all the restaurants by their location, we were able to get a total count for each one. This provides a clear overview of which areas have the highest concentration of dining establishments.
+
 
